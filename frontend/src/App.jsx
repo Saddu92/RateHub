@@ -43,6 +43,13 @@ const demo = [
   },
 ].map((store) => ({ ...store, isDemo: true }));
 
+const getStoreRating = (store) => {
+  const value = Number(
+    store.overallRating ?? store.rating ?? store.averageRating,
+  );
+  return Number.isFinite(value) ? value : 0;
+};
+
 function Icon({ name, size = 20 }) {
   const paths = {
     search: (
@@ -443,9 +450,22 @@ function Workspace({ user, onBack, onLogout }) {
                       <span>{store.address}</span>
                       <span>
                         ★{" "}
-                        {Number(store.rating ?? store.averageRating).toFixed(1)}{" "}
+                        {getStoreRating(store).toFixed(1)}{" "}
                         · {store.totalRatings} ratings
                       </span>
+                      {!admin && (
+                        <div className="rating-list">
+                          {store.ratings?.length ? (
+                            store.ratings.map((rating) => (
+                              <span key={rating.id}>
+                                {rating.user.name} · {rating.rating}/5
+                              </span>
+                            ))
+                          ) : (
+                            <span>No ratings yet.</span>
+                          )}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -516,10 +536,11 @@ function App() {
 
   useEffect(() => {
     if (!localStorage.getItem("ratehub-token")) return;
+    const storesEndpoint = user?.role === "ADMIN" ? "/admin/stores" : "/stores";
     api
-      .get("/stores", { params: { limit: 12 } })
+      .get(storesEndpoint, { params: { limit: 100 } })
       .then(({ data }) => {
-        if (data?.data?.stores?.length) {
+        if (data?.data?.stores) {
           setStores((current) => [
             ...current.filter((store) => store.isDemo),
             ...data.data.stores,
@@ -843,9 +864,9 @@ function App() {
                 </p>
                 <div className="card-foot">
                   <div>
-                    <Stars value={store.overallRating} />
+                    <Stars value={getStoreRating(store)} />
                     <strong>
-                      {Number(store.overallRating).toFixed(1)}{" "}
+                      {getStoreRating(store).toFixed(1)}{" "}
                       <small>({store.totalRatings})</small>
                     </strong>
                   </div>

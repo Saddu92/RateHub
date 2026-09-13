@@ -18,7 +18,7 @@ const router = express.Router();
 router.get(
   "/",
   authenticate,
-  authorize("USER"),
+  authorize("USER", "STORE_OWNER", "ADMIN"),
   storesController.getStores
 );
 
@@ -26,7 +26,7 @@ router.get(
 router.get(
   "/:id",
   authenticate,
-  authorize("USER"),
+  authorize("USER", "STORE_OWNER", "ADMIN"),
   storesController.getStoreById
 );
 
